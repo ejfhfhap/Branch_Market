@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+		<!-- 여러개로 나뉜 파일을 하나로 합치는것 -->
+	<bean class="org.springframework.web.multipart.commons.CommonsMultipartResolver" id="multipartResolver">
+		<property name="defaultEncoding" value="UTF-8"></property>
+		
+		<!-- upload하는 파일명 최대 크기 제한 단위 byte -->
+		<property name="maxUploadSizePerFile" value="10485760"></property>
+		
+		<!-- 전체 upload하는 파일 크기 -->
+		<property name="maxUploadSize" value="31457280" ></property>
+	</bean>
+	
+	<!-- 메일링 -->
+	<!-- gmail설정 -->
+	<bean id="mailSender2" class="org.springframework.mail.javamail.JavaMailSenderImpl"> 
+     <property name="host" value="smtp.gmail.com" />
+     <property name="port" value="587" />
+	 <property name="username" value=""/> <!-- 자신의 이메일 아이디 -->
+	 <property name="password" value=""/> <!-- 자신의 api 비번 -->
+	 <!-- 보안연결 TLS과 관련된 설정 -->
+	     <property name="javaMailProperties">
+	    <props>
+			<prop key="mail.smtp.starttls.enable">true</prop>
+			<prop key="mail.smtp.auth">true </prop>
+			<prop key="mail.transport.protocol">smtp</prop>
+			<prop key="mail.debug">true</prop>
+			<prop key="mail.smtp.ssl.trust">smtp.gmail.com</prop>
+			<prop key="mail.smtp.ssl.protocols">TLSv1.2</prop>
+		</props>
+     </property>
+	</bean>
+
+</beans>

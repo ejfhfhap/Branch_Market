@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.main.branch.member.MemberDAO">
+  <!-- 	private String memberId;
+	private String memberPw;
+	private String memberEmail;
+	private String memberPhone;
+	private String memberAddress;
+	private Integer memberHit;
+	private String memberRole; -->
+	
+	<select id="getMemberFindId" parameterType="MemberDTO" resultType="String">
+		SELECT memberId FROM MEMBER WHERE memberEmail = #{memberEmail}
+	</select>
+	
+	<update id="setMemberUpdatePw" parameterType="MemberDTO">
+		UPDATE MEMBER SET memberPw = #{changeMemberPw} WHERE memberId = #{memberId} AND memberPw = #{memberPw}
+	</update>
+	
+ 	<select id="getMemberList" resultType="MemberDTO">
+ 		SELECT * FROM MEMBER
+ 	</select>
+ 	<insert id="setMemberAdd" parameterType="MemberDTO">
+ 		INSERT INTO MEMBER VALUES(#{memberId},#{memberPw},#{memberEmail},#{memberPhone},#{memberAddress},0,'member')
+ 	</insert>
+ 	<select id="getMemberDetail" parameterType="MemberDTO" resultType="MemberDTO">
+ 		SELECT * FROM MEMBER WHERE memberId = #{memberId}
+ 	</select>
+ 	<update id="setMemberUpdate" parameterType="MemberDTO">
+ 		UPDATE MEMBER 
+ 		<trim prefix="SET" suffixOverrides=",">
+ 			memberId = #{memberId},
+ 			<if test="memberPw != ''">memberPw = #{memberPw},</if>
+ 			<if test="memberEmail != ''">memberEmail = #{memberEmail},</if>
+ 			<if test="memberPhone != ''">memberPhone = #{memberPhone},</if>
+ 			<if test="memberAddress != ''">memberAddress = #{memberAddress},</if>
+ 		</trim>
+ 		WHERE memberId = #{memberId}
+ 	</update>
+ 	<delete id="setMemberDelete" parameterType="MemberDTO">
+ 		DELETE MEMBER WHERE memberId = #{memberId}
+ 	</delete>
+ 	
+ 	<update id="setMemberHitUpdate" parameterType="MemberDTO">
+ 		UPDATE MEMBER SET memberHit = memberHit + 1 WHERE memberId = #{memberId}
+ 	</update>
+ 	
+ </mapper>
+ 

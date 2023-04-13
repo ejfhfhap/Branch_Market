@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.main.branch.board.BoardDAO">
+ 	<sql id="boardCondition">
+ 		<trim prefix="WHERE" prefixOverrides="AND">
+			<if test="search!=null">
+				(BOARDTITLE LIKE '%' || #{search} ||'%' OR BOARDCONTENTS LIKE '%' || #{search} ||'%')
+			</if>
+			<!-- <if test="kind=='contents'">
+				BOARDCONTENTS LIKE '%' || #{search} || '%'
+			</if>
+			<if test="kind=='writer'">
+				MEMBERID LIKE '%' || #{search} || '%'
+			</if> -->
+	
+	 		<!-- <if test="category != null and category !=''">
+	 			AND boardCategory = #{category}
+	 		</if> -->
+	 		<if test="category != null and category !=''">
+	 			AND BOARDCATEGORY = #{category}
+	 		</if>
+	 		<if test="state != null and state != ''">
+	 			AND boardState = #{state}
+	 		</if>
+	 		<if test="kind !='writer' and memberId != null and memberId != ''">
+	 			AND memberId = #{memberId}
+	 		</if> 		
+ 		</trim>
+
+ 	</sql>
+ 
+ 	<select id="getTotalCount" resultType="Integer" parameterType="Pager">
+ 		SELECT COUNT(BOARDNUM) FROM BOARD
+ 		<include refid="boardCondition"></include>
+ 	</select>
+ 
+ 	<select id="getBoardList" resultType="BoardDTO" parameterType="Pager">
+ 		SELECT * FROM (
+ 			SELECT ROWNUM R,B.* FROM(
+ 				SELECT * FROM BOARD 
+ 				<include refid="boardCondition"></include>
+ 				ORDER BY BOARDNUM DESC
+ 				)B
+ 			)
+ 		WHERE R BETWEEN #{startRow} AND #{lastRow}
+ 	</select>
+ 	
+ 	<select id="getBoardDetail" parameterType="BoardDTO" resultMap="BoardDetailResult" >
+ 		SELECT * FROM BOARD B LEFT OUTER JOIN BOARDIMG BI ON (B.BOARDNUM = BI.BOARDNUM) 
+  		WHERE B.BOARDNUM=#{boardNum}
+ 	</select>
+ 	
+ 	<resultMap type="BoardDTO" id="BoardDetailResult">
+  		<!-- Primary Key -->
+  		<id column="BOARDNUM" property="boardNum"/>
+  		<!-- 洹몄쇅 ?섎㉧吏 -->
+  		<result column="MEMBERID" property="memberId"/>
+  		<result column="BOARDTITLE" property="boardTitle"/>
+  		<result column="BOARDCONTENTS" property="boardContents"/>
+  		<result column="BOARDPRICE" property="boardPrice"/>
+  		<result column="BOARDDATE" property="boardDate"/>
+  		<result column="BOARDHIT" property="boardHit"/>
+  		<result column="BOARDSTATE" property="boardState"/>
+  		<result column="BOARDCATEGORY" property="boardCategory"/>
+
+  		<!-- 1:1 -->
+  		<collection property="boardImgDTOs" javaType="List" ofType="boardImgDTO">
+  			<id column="FILENUM" property="fileNum"/>
+  			<result column="FILENAME" property="fileName"/>
+  			<result column="ORINAME" property="oriName"/>
+  		</collection>
+  		<!-- 1:N -->
+  	</resultMap>
+ 	
+ 	<insert id="setBoardAdd" parameterType="BoardDTO">
+ 		<selectKey keyProperty="boardNum" resultType="Integer" order="BEFORE">
+ 			SELECT SEQ.NEXTVAL FROM DUAL
+ 		</selectKey>
+ 		INSERT INTO BOARD VALUES(#{boardNum},#{memberId},#{boardTitle},#{boardContents},#{boardPrice},SYSDATE,0,#{boardState},#{boardCategory})
+ 	</insert>
+ 	
+ 	<insert id="setBoardImgAdd" parameterType="BoardImgDTO">
+ 		INSERT INTO BOARDIMG (FILENUM,BOARDNUM,FILENAME,ORINAME) VALUES (SEQ.NEXTVAL,#{boardNum},#{fileName},#{oriName})
+ 	</insert>
+ 	
+ 	
+ 	<delete id="setBoardDelete" parameterType="BoardDTO">
+ 		DELETE BOARD WHERE BOARDNUM=#{boardNum}
+ 	</delete>
+ 	
+ 	<delete id="setBoardImgDelete" parameterType="Integer">
+  		DELETE BOARDIMG WHERE FILENUM=#{fileNum}
+  	</delete>
+ 	<update id="setBoardUpdate" parameterType="BoardDTO">
+ 		UPDATE BOARD SET BOARDTITLE=#{boardTitle}, BOARDCONTENTS=#{boardContents},BOARDPRICE=#{boardPrice},BOARDSTATE=#{boardState},BOARDCATEGORY= #{boardCategory} 
+ 		WHERE BOARDNUM=#{boardNum}
+ 	</update>
+ 	
+ 	<update id="setBoardHitAdd" parameterType="BoardDTO">
+ 		UPDATE BOARD SET boardHit = boardHit + 1 WHERE BOARDNUM = #{boardNum}
+ 	</update>
+ 	<select id="getBoardSellTopList" resultType="BoardDTO">
+ 		SELECT * FROM(
+			SELECT ROWNUM R,A.* FROM
+			(SELECT * FROM BOARD WHERE BOARDSTATE = '판매' ORDER BY boardHit DESC) A
+		)WHERE R BETWEEN 1 AND 5
+ 	</select>
+ 	<select id="getBoardBuyTopList" resultType="BoardDTO">
+ 		SELECT * FROM(
+			SELECT ROWNUM R,A.* FROM
+			(SELECT * FROM BOARD WHERE BOARDSTATE = '구매' ORDER BY boardHit DESC) A
+		)WHERE R BETWEEN 1 AND 5
+ 	</select>
+ 	
+ 	<!-- pic -->
+ 	<insert id="setBoardPicAdd" parameterType="BoardPicDTO">
+ 		INSERT INTO BOARDPIC VALUES (#{boardNum},#{memberId})
+ 	</insert>
+ 	
+ 	<delete id="setBoardPicDelete" parameterType="BoardPicDTO">
+ 		DELETE BOARDPIC WHERE BOARDNUM=#{boardNum} AND memberId = #{memberId}
+ 	</delete>
+ 	
+ 	<select id="getBoardPicList" parameterType="BoardPicDTO" resultType="BoardPicDTO">
+ 		SELECT * FROM BOARDPIC WHERE memberId = #{memberId}
+ 	</select>
+ 	<select id="checkAlreadyBoardPic" parameterType="BoardDTO" resultType="BoardPicDTO">
+ 		SELECT * FROM BOARDPIC WHERE BOARDNUM=#{boardNum} AND memberId = #{memberId}
+ 	</select>
+ 	<select id="getMyBoardPicTotalCount" parameterType="MemberDTO" resultType="Integer">
+ 		SELECT COUNT(*) FROM BOARDPIC WHERE memberId = #{memberId}
+ 	</select>
+ 	<select id="getBoardImgList" parameterType="BoardDTO" resultType="BoardImgDTO">
+ 		SELECT * FROM BOARDIMG WHERE BOARDNUM=#{boardNum}
+ 	</select>
+ </mapper>
